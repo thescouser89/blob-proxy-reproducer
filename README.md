@@ -4,18 +4,18 @@ This project is a reproducer to show that `BlobProxy.generateProxy` doesn't work
 than 2GB.
 
 ## Run
-```
+```bash
 $ quarkus dev
 ```
 
 Let's generate a file to upload.
-```
+```bash
 # 3GB file
 $ base64 /dev/urandom | head -c 3000000000 > file-3000m.txt
 ```
 
 Let's upload!
-```
+```bash
 $ curl -v -F file=@file-3000m.txt http://localhost:8080/hello
 ```
 
