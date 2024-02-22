@@ -45,42 +45,4 @@ public class GreetingResource {
 
         return "haa";
     }
-
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Transactional
-    public Response getblob(@PathParam("id") int id) throws Exception {
-        MyEntity entity = MyEntity.findById(id);
-        /**
-         * Since we need to load all the data of the blob in a transaction, we write it to a temp file first, then
-         * stream the content of the file in the response. Finally we delete the temp file for cleanup
-         *
-         * Strangely, we cannot stream the blob's input stream to the outputstream since the transaction is dead at this
-         * point and the streaming from db to quarkus is dead. We instead have to save it into a temp file as an
-         * intermediate
-         */
-        java.nio.file.Path path = Files.createTempFile("temp-upload-file", "out");
-        FileOutputStream outputStream = new FileOutputStream(path.toFile());
-
-        // copy the data of the blob to the temp file
-        entity.blob.getBinaryStream().transferTo(outputStream);
-
-        return Response.ok().entity((StreamingOutput) output -> {
-            try {
-                Files.copy(path, output);
-            } finally {
-                Files.delete(path);
-            }
-        }).build();
-    }
-
-    @GET
-    @Path("/md5/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Transactional
-    public String getMd5blob(@PathParam("id") int id) throws Exception {
-        MyEntity entity = MyEntity.findById(id);
-        return DigestUtils.md5Hex(entity.blob.getBinaryStream());
-    }
 }
